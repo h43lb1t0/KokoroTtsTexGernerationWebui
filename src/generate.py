@@ -82,7 +82,7 @@ def load_voice(voice=None):
 load_voice()
 
 
-def run(text, preview=False):
+def run(text, preview=False, rvc_params=None):
     """Generate audio from text.
 
     Args:
@@ -92,6 +92,8 @@ def run(text, preview=False):
     Returns:
         str: The message ID.
     """
+    if rvc_params is None:
+        rvc_params = {'rvc': False, 'rvc_model': None}  # Safe default
     global MODEL, voicepack
     MODEL = build_model(model_path, device)
     msg_id = str(uuid.uuid4())
@@ -103,6 +105,16 @@ def run(text, preview=False):
 
     del MODEL
     gc.collect()
+    if rvc_params.get('rvc', False) and rvc_params.get('rvc_model'):
+        from extensions.KokoroTtsTexGernerationWebui_tts.rvc import process_with_rvc  # Use relative import
+        
+        process_with_rvc(
+            audio_path,
+            rvc_params['rvc_model'],
+            transpose=rvc_params.get('transpose', 0),
+            index_rate=rvc_params.get('index_rate', 0.75),
+            protect=rvc_params.get('protect', 0.33)
+        )
 
     return msg_id
 
