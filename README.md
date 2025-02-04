@@ -1,3 +1,15 @@
+# For RVC (name of the extension matters) (tested locally but something might be missing)
+
+```
+pip install fairseq-0.12.3.1-cp311-cp311-win_amd64.whl
+pip install -r requirements.txt
+```
+Download the required RVC models and place them in the `models` folder
+```
+curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt
+curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/rmvpe.pt
+```
+Add your `.pth` files to `rvc_models`
 # Kokoro-Based TTS Extension for [Oobabooga Text Generation WebUI](https://github.com/oobabooga/text-generation-webui)
 
 Enhance your text generation experience with the Kokoro TTS extension, seamlessly integrating with the Oobabooga Text Generation WebUI.
