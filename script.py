@@ -46,10 +46,97 @@ def ui():
     spltting_method.change(set_plitting_type, spltting_method)
 
     
+def input_modifier(string, state, is_chat=False):
 
+    voices_string = ', '.join(VOICES)
 
+    prompt = f"""
+    **Instructions:**
+    **Task: Add Speaker Tags for Text-to-Speech**
+
+    **Objective:** Append a specific speaker tag IMMEDIATELY after each segment of direct speech in the provided text.
+
+    **Available Voice Names:**
+
+    ```
+    {voices_string}
+    ```
+
+    **Precise Rules:**
+
+    1.  **Identify Direct Speech:** Locate all text enclosed in quotation marks (`"`).
+    2.  **Identify Speaker:** For each quote, determine which character is speaking.
+    3.  **Assign Unique Voice Name:**
+        *   For each distinct character identified as a speaker, assign ONE unique voice name from the `Available Voice Names` list.
+        *   Use names starting with `af_` or `bf_` for characters perceived as female.
+        *   Use names starting with `am_` or `bm_` for characters perceived as male.
+    4.  **Maintain Consistency:** Once a character is assigned a voice name, use THAT SAME name every time they speak.
+    5.  **Append Tag - CRITICAL PLACEMENT:**
+        *   Append the assigned voice name in the exact format `[name]`.
+        *   Place this tag **IMMEDIATELY** after the closing quotation mark (`"`) of the direct speech. **NO SPACES** between the `"` and the `[`.
+        *   **Example:** `"Quote goes here."[assigned_name]`
+    6.  **DO NOT MODIFY ORIGINAL TEXT:**
+        *   **Crucially:** Do NOT add character names *before* the quotation marks or anywhere else in the narrative text.
+        *   The tag `[name]` is the *only* allowed addition to the text.
+
+    **Example:**
+
+    *Original Snippet:*
+
+    ```
+    "Hello there," Alice said. "How are you?"
+    "I'm fine," replied Bob. "And you?"
+    Alice smiled. "Doing well!"
+    ```
+
+    *Correct Output (Assuming Alice -> af_alloy, Bob -> am_adam):*
+
+    ```
+    "Hello there,"[af_alloy] Alice said. "How are you?"[af_alloy]
+    "I'm fine,"[am_adam] replied Bob. "And you?"[am_adam]
+    Alice smiled. "Doing well!"[af_alloy]
+    ```
+    """
+
+    string += prompt
 
     
+    
+    return string
+
+def state_modifier(state):
+    # Build a pipe-separated list of raw voice tokens (no extra quotes)
+    qouted_voices = [f'"{v}"' for voice in VOICES]
+    voices_string = ' | '.join(qouted_voices)
+
+    # A GBNF that forces the tag immediately after the quote
+    grammar = f"""
+    # Root: sequence of non-quotes and tagged quotes
+    root         ::= sequence
+
+    # A sequence is any mix of text outside quotes or properly tagged quotes
+    sequence     ::= (non_quote | tagged_quote)*
+
+    # Anything except a double-quote
+    non_quote    ::= [^"]+
+
+    # A quoted segment plus its tag
+    tagged_quote ::= '"' quoted_content '"' speaker_tag
+
+    # The text inside quotes (no unescaped ")
+    quoted_content ::= [^"]*
+
+    # Tag that must follow immediately after the closing quote
+    speaker_tag  ::= '[' voice_name ']'
+
+    # Allowed voice names
+    voice_name   ::= {voices_string}
+    """
+
+    #state['grammar_string'] = grammar.strip()
+    #print("State modified with grammar:")
+    #print(state['grammar_string'])
+    return state
 
 def output_modifier(string, state):
 
