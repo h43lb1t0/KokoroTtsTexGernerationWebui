@@ -1,7 +1,10 @@
 # Audio Play
 
 **Example:**
-<audio controls src="example_audio_play.mp3" title="Title"></audio>
+<audio controls>
+  <source src="https://github.com/h43lb1t0/KokoroTtsTexGernerationWebui/raw/refs/heads/personas/example_audio_play.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
 
 ---
 
