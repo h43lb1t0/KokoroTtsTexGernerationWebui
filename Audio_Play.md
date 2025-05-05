@@ -1,5 +1,7 @@
 # Audio Play
 
+**Example:**
+<audio controls src="example_audio_play.mp3" title="Title"></audio>
 
 ---
 
