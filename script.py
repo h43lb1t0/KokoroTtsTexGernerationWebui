@@ -1,10 +1,12 @@
 import pathlib
 import html
 import time
-from extensions.KokoroTtsTexGernerationWebui.src.generate import run, load_voice, set_plitting_type
+from extensions.KokoroTtsTexGernerationWebui.src.generate import run, load_voice, set_plitting_type, set_speaker_tags, get_use_speaker_tags
 from extensions.KokoroTtsTexGernerationWebui.src.voices import VOICES
 import gradio as gr
 import time
+import re
+
 
 from modules import shared
 
@@ -39,6 +41,12 @@ def ui():
         is by word up to 510 tokens. """
         spltting_method = gr.Radio(["Split by sentence", "Split by Word"], info=info_splitting, value="Split by sentence", label_lines=2, interactive=True)
 
+        info_use_speaker_tags = """EXPERIMENTAL: Qoutes (from same person) will get unique voices different from the main voice.\n
+        This may not work depending on the LLM used."""
+        use_speaker_tags = gr.Checkbox(label="Use Speaker Tags", value=False, info=info_use_speaker_tags)
+
+        use_speaker_tags.change(set_speaker_tags, use_speaker_tags)
+
 
     voice.change(voice_update, voice)
     preview.click(fn=voice_preview, outputs=preview_output)
@@ -47,6 +55,9 @@ def ui():
 
     
 def input_modifier(string, state, is_chat=False):
+
+    if not get_use_speaker_tags():
+        return string
 
     voices_string = ', '.join(VOICES)
 
@@ -164,6 +175,10 @@ def load_and_update_grammar(grammar_filepath: str, names_list: list[str]) -> str
     return updated_grammar
 
 def state_modifier(state):
+
+    if not get_use_speaker_tags():
+        state['grammar_string'] = ""
+        return state
     
     # get the path to the grammar file
     grammar_filepath = pathlib.Path(__file__).parent / 'kokoro_grammar.gbnf'
@@ -183,15 +198,16 @@ def output_modifier(string, state):
     string_for_tts = string_for_tts.replace('*', '')
     string_for_tts = string_for_tts.replace('`', '')
 
-    print(string_for_tts)
-
  
     # Run your custom logic to generate audio
     msg_id = run(string_for_tts)
 
     # Construct the correct path to the 'audio' directory
     audio_dir = pathlib.Path(__file__).parent / 'audio' / f'{msg_id}.wav'
+    
+    pattern = r'\[(af|am|bf|bm)_[^\]]*]'
 
+    string = re.sub(pattern, '', string_for_tts)
 
     # Add the audio playback HTML to the output string
     string += f'<audio controls><source src="file/{audio_dir.as_posix()}" type="audio/mpeg"></audio>'
