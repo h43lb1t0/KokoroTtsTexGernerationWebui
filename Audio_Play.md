@@ -1,11 +1,7 @@
 # Audio Play
 
-<video controls preload="none">
-  <source
-    src="https://raw.githubusercontent.com/h43lb1t0/KokoroTtsTexGernerationWebui/personas/example_audio_play.mp4"
-    type="video/mp4">
-  Your browser doesn’t support the video tag.
-</video>
+**Example:**
+[Donwload audioexample here explaing this feature](https://github.com/h43lb1t0/KokoroTtsTexGernerationWebui/raw/refs/heads/personas/example_audio_play.mp3)
 
 
 ---
