@@ -10,10 +10,6 @@ import re
 
 from modules import shared
 
-def input_modifier(string, state):
-
-    shared.processing_message = "*Is recording a voice message...*"
-    return string
 
 
 def voice_update(voice):
@@ -43,7 +39,7 @@ def ui():
 
         info_use_speaker_tags = """EXPERIMENTAL: Qoutes (from same person) will get unique voices different from the main voice.\n
         This may not work depending on the LLM used."""
-        use_speaker_tags = gr.Checkbox(label="Use Speaker Tags", value=False, info=info_use_speaker_tags)
+        use_speaker_tags = gr.Checkbox(label="'Audio Play'", value=False, info=info_use_speaker_tags)
 
         use_speaker_tags.change(set_speaker_tags, use_speaker_tags)
 
