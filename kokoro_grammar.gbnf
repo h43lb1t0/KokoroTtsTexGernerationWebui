@@ -1,0 +1,25 @@
+# Root rule: The entire input consists of zero or more elements
+root ::= element*
+
+# An element can be either:
+# 1. Quoted speech, which MUST be followed by a speaker tag
+# 2. Any single character that is NOT a double quote (to handle regular text)
+element ::= quoted-speech | non-quote-char
+
+# Defines quoted speech: starts with ", contains content, ends with ", and is IMMEDIATELY followed by a speaker tag.
+quoted-speech ::= "\"" quote-content "\"" speaker-tag
+
+# Content inside the quotes: zero or more characters that are NOT a double quote.
+# Note: This basic version doesn't handle escaped quotes like \" inside the string.
+quote-content ::= [^"]*
+
+# Defines the structure of a speaker tag: a speaker name enclosed in square brackets.
+speaker-tag ::= "[" speaker-name "]"
+
+# Defines the allowed speaker names.
+# --- This line will be replaced ---
+speaker-name ::= "alice" | "bob"
+
+# Matches any single character that is not a double quote.
+# This allows any other text (words, spaces, punctuation etc.) that isn't part of the quoted structure.
+non-quote-char ::= [^"]

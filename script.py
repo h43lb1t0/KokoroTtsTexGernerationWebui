@@ -104,39 +104,76 @@ def input_modifier(string, state, is_chat=False):
     
     return string
 
-def state_modifier(state):
-    # Build a pipe-separated list of raw voice tokens (no extra quotes)
-    qouted_voices = [f'"{v}"' for voice in VOICES]
-    voices_string = ' | '.join(qouted_voices)
-
-    # A GBNF that forces the tag immediately after the quote
-    grammar = f"""
-    # Root: sequence of non-quotes and tagged quotes
-    root         ::= sequence
-
-    # A sequence is any mix of text outside quotes or properly tagged quotes
-    sequence     ::= (non_quote | tagged_quote)*
-
-    # Anything except a double-quote
-    non_quote    ::= [^"]+
-
-    # A quoted segment plus its tag
-    tagged_quote ::= '"' quoted_content '"' speaker_tag
-
-    # The text inside quotes (no unescaped ")
-    quoted_content ::= [^"]*
-
-    # Tag that must follow immediately after the closing quote
-    speaker_tag  ::= '[' voice_name ']'
-
-    # Allowed voice names
-    voice_name   ::= {voices_string}
+def load_and_update_grammar(grammar_filepath: str, names_list: list[str]) -> str:
     """
+    Loads a GBNF grammar from a file and updates the 'speaker-name' rule
+    with the provided list of names.
 
-    #state['grammar_string'] = grammar.strip()
-    #print("State modified with grammar:")
-    #print(state['grammar_string'])
+    Args:
+        grammar_filepath: The path to the GBNF grammar file.
+        names_list: A list of strings, where each string is a speaker name.
+
+    Returns:
+        A string containing the updated GBNF grammar.
+
+    Raises:
+        FileNotFoundError: If the grammar file does not exist.
+        ValueError: If the 'speaker-name ::=' rule is not found in the grammar file
+                    or if the names_list is empty.
+        IOError: If there's an error reading the file.
+    """
+    import re
+    import os
+    if not names_list:
+        raise ValueError("The list of names cannot be empty.")
+
+    if not os.path.exists(grammar_filepath):
+        raise FileNotFoundError(f"Grammar file not found: {grammar_filepath}")
+
+    try:
+        with open(grammar_filepath, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except Exception as e:
+        raise IOError(f"Error reading grammar file {grammar_filepath}: {e}")
+
+    # Prepare the new speaker names string part
+    # Ensure names are quoted and joined by " | "
+    formatted_names = [f'"{name}"' for name in names_list]
+    speaker_names_definition = " | ".join(formatted_names)
+    new_speaker_rule_line = f"speaker-name ::= {speaker_names_definition}\n"
+
+    # Find and replace the speaker-name rule line
+    speaker_rule_found = False
+    for i, line in enumerate(lines):
+        # Use strip() to handle potential leading/trailing whitespace
+        # Use regex for a slightly more flexible match (optional, simple startswith is often fine)
+        # if line.strip().startswith("speaker-name ::="):
+        if re.match(r"^\s*speaker-name\s*::=", line):
+            lines[i] = new_speaker_rule_line
+            speaker_rule_found = True
+            break # Assume only one definition
+
+    if not speaker_rule_found:
+        raise ValueError(
+            "Could not find the 'speaker-name ::=' rule in the grammar file."
+        )
+
+    # Join the modified lines back into a single string
+    updated_grammar = "".join(lines)
+
+    return updated_grammar
+
+def state_modifier(state):
+    
+    # get the path to the grammar file
+    grammar_filepath = pathlib.Path(__file__).parent / 'kokoro_grammar.gbnf'
+
+    grammar = load_and_update_grammar(grammar_filepath, VOICES)
+
+    state['grammar_string'] = grammar
+
     return state
+
 
 def output_modifier(string, state):
 
@@ -145,6 +182,8 @@ def output_modifier(string, state):
     string_for_tts = html.unescape(string)
     string_for_tts = string_for_tts.replace('*', '')
     string_for_tts = string_for_tts.replace('`', '')
+
+    print(string_for_tts)
 
  
     # Run your custom logic to generate audio
