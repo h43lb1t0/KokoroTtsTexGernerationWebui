@@ -15,6 +15,12 @@ Enhance your text generation experience with the Kokoro TTS extension, seamlessl
 
 Kokoro TTS is limited to inputs up to **510 tokens**. *Note that Kokoro tokens differ from LLM tokens.* This extension allows you to generate longer audio outputs by splitting the input text into segments and concatenating the resulting audio.
 
+## Audio Play
+> [!NOTE] 
+> Currently, the Audio Play feature is not available in the main branch as it is still in development, but you cansee [here](https://github.com/h43lb1t0/KokoroTtsTexGernerationWebui/blob/personas/Audio_Play.md) how to use it.
+
+Unique TTS voices are assigned to each speaker in dialogue to get a audio play like experience. 
+
 ### Text Splitting Methods
 
 - **Split by Sentence:** Divides the text into chunks of complete sentences, each chunk containing fewer than or 510 tokens.
